@@ -8,11 +8,15 @@
 #include <atomic>
 #include <mutex>
 
+#include "JobQueue.h"
+
 class JobSystem {
 public:
     JobSystem();
     void Terminate();
     void WorkerTask(size_t workerIndex) noexcept; // worker task to be run by each worker thread
+    void Submit(const std::shared_ptr<Job>& job); // submit a job to the job system
+    inline bool IsDone() const { return m_JobQueue.size() == 0; } // check if all jobs are done
 
 private:
     static inline thread_local size_t m_workerIndex = 0; // worker index of thread
@@ -21,6 +25,7 @@ private:
     static inline std::atomic<bool> m_Terminate = false; // worker must terminate
     static inline std::atomic<bool> m_Terminated = false; // all workers have terminated
     size_t WorkerCount; // number of workers to create
+    JobQueue m_JobQueue; // job queue
 };
 
 

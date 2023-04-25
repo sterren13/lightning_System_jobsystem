@@ -99,6 +99,23 @@ public:
     }
 };
 
+std::atomic_flag m_lock = ATOMIC_FLAG_INIT;
+
+class testJob : public Job {
+public:
+    testJob(int id) : jobID(id) {}
+    int jobID = 0;
+    void Execute() override {
+        int result = 0;
+        for (size_t i = 0; i < 10000+jobID; i++) {
+            result += i;
+        }
+        while (m_lock.test_and_set(std::memory_order_acquire)) {}
+        std::cout << "testJob::Execute: " << jobID << ", result: " << result << std::endl;
+        m_lock.clear(std::memory_order_release);
+    }
+};
+
 int main() {
     World world;
 
@@ -114,7 +131,12 @@ int main() {
     world.PrintGroupTree();
 
     JobSystem js;
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    for (size_t i = 0; i < 10000; i++) {
+        js.Submit(std::make_shared<testJob>(i));
+    }
+    while (js.IsDone() == false) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     js.Terminate();
 
     //world.OnInit();

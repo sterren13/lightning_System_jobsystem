@@ -36,11 +36,12 @@ void JobSystem::WorkerTask(size_t workerIndex) noexcept {
     m_Ready = true;
 
     while (!m_Terminate){
-        int r = fibonacci(40);
-        PrintMutex.lock();
-        std::cout << "Worker " << workerIndex << " r= " << r << "\n";
-        PrintMutex.unlock();
-        std::this_thread::sleep_for(std::chrono::microseconds (500));
+        if (m_JobQueue.size() > 0) {
+            std::shared_ptr<Job> job = m_JobQueue.pop();
+            if (job) {
+                job->Execute();
+            }
+        }
     }
 
     PrintMutex.lock();
@@ -56,4 +57,8 @@ void JobSystem::Terminate() {
     m_Terminate = true;
     while (!m_Terminated) {} // wait until all workers are terminated
     std::cout << "Job system is terminated\n";
+}
+
+void JobSystem::Submit(const std::shared_ptr<Job> &job) {
+    m_JobQueue.push(job);
 }
