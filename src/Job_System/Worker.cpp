@@ -7,36 +7,38 @@
 #include "Job_System/Worker_Manger.h"
 #include "Job_System/Worker.h"
 
-
-Worker_Manger* Worker_Manger::Instance = nullptr;
-
-void Worker_Manger::Init() {
-    if (Instance == nullptr)
-        Instance = new Worker_Manger();
-}
-
-void Worker_Manger::Destroy() {
-    if (Instance != nullptr) {
-        delete Instance;
-        Instance = nullptr;
-    }
-}
-
-Worker_Manger::Worker_Manger() : WorkerCount(std::thread::hardware_concurrency()) {
-    std::cout << "Creating " << WorkerCount << " workers" << std::endl;
-    for (size_t i = 0; i < WorkerCount; i++) {
-        Workers.push_back(new Worker());
-    }
-}
-
-Worker::Worker() {
-
+Worker::Worker(Job_Queue &jobQueue) : GlobalJobQueue(jobQueue) {
+    Running = true;
+    Thread = std::thread(&Worker::Run, this);
 }
 
 Worker::~Worker() {
-
+    std::cout << "Destory worker\n";
+    Running = false;
+    Thread.join();
 }
 
 void Worker::Run() {
-
+    while (Running) {
+        if (GlobalJobQueue.IsEmpty()) {
+            continue;
+        }
+        std::shared_ptr<Job> job = GlobalJobQueue.Pop();
+        if (job) {
+            job->Execute();
+        }
+    }
+    /*
+    while (Running) {
+        std::unique_lock<std::mutex> lock(GlobalJobQueueMutex);
+        GlobalJobQueueCondition.wait(lock, [this] { return !GlobalJobQueue.IsEmpty() || !Running; });
+        if (!Running) {
+            return;
+        }
+        std::shared_ptr<Job> job = GlobalJobQueue.Pop();
+        if (job) {
+            job->Execute();
+        }
+    }
+     */
 }

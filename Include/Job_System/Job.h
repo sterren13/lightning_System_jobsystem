@@ -6,7 +6,7 @@
 #define TESTSYSTEMS_JOB_H
 
 
-class Job {
+struct Job {
     virtual void Execute() = 0;
 };
 

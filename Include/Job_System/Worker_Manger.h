@@ -5,7 +5,7 @@
 #ifndef TESTSYSTEMS_WORKER_MANGER_H
 #define TESTSYSTEMS_WORKER_MANGER_H
 #include <vector>
-#include <queue>
+#include "Job_Queue.h"
 
 #include "Worker.h"
 
@@ -14,13 +14,20 @@ public:
     static void Init();
     static void Destroy();
 
+    inline static Worker_Manger* GetInstance() { return Instance;}
+
     Worker_Manger();
+
+    void Wait();
+
+    inline void ScheduleJob(const std::shared_ptr<Job>& job) { JobQueue.Push(job); }
 
 private:
     static Worker_Manger* Instance;
     const size_t WorkerCount;
+    Job_Queue JobQueue;
     std::vector<Worker*> Workers;
-    std::queue<Worker*> FreeWorkers;
+    std::condition_variable JobQueueEmpty;
 };
 
 
