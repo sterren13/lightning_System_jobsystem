@@ -9,6 +9,8 @@
 
 #include "Worker.h"
 
+// https://github.com/turanszkij/JobSystem
+
 class Worker_Manger {
 public:
     static void Init();
