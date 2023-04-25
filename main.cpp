@@ -1,10 +1,14 @@
 #include <iostream>
 
+
+// group system
 #include "Groups/Group.hpp"
 #include "Groups/GroupTraits.hpp"
 #include "Groups/IMember.hpp"
-#include "Job_System/Worker_Manger.h"
 #include "World/World.h"
+
+// job system
+#include "Job_System/JobSystem.h"
 
 class InitGroupTrait : public GroupTraits {
 public:
@@ -95,38 +99,7 @@ public:
     }
 };
 
-std::mutex printMutex;
-
-struct TestJobe : public Job {
-
-    std::string name;
-    int arguement = 0;
-
-    int fibonacci(int n) {
-        if (n <= 1) {
-            return n;
-        }
-        return fibonacci(n-1) + fibonacci(n-2);
-    }
-
-    void Execute() override {
-        int r2 = fibonacci(arguement);
-        printMutex.lock();
-        std::cout << name << ": fibonacci: " << arguement << " --> " << r2 << std::endl;
-        printMutex.unlock();
-    }
-};
-
-int factorial(int n) {
-    if (n == 0) { // base case
-        return 1;
-    } else {
-        return n * factorial(n - 1); // recursive case
-    }
-}
-
 int main() {
-    Worker_Manger::Init();
     World world;
 
     // add members
@@ -140,21 +113,15 @@ int main() {
 
     world.PrintGroupTree();
 
+    JobSystem js;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    js.Terminate();
+
     //world.OnInit();
     //world.OnStart();
     //world.OnUpdate();
     //world.OnStop();
     //world.OnDestroy();
 
-    Worker_Manger* workerManger = Worker_Manger::GetInstance();
-    for (int i = 1; i < 10; i++){
-        std::shared_ptr<TestJobe> job = std::make_shared<TestJobe>();
-        job->name = std::string("Job ") + std::to_string(i);
-        job->arguement = i;
-        workerManger->ScheduleJob(job);
-    }
-    workerManger->Wait();
-
-    Worker_Manger::Destroy();
     return 0;
 }
