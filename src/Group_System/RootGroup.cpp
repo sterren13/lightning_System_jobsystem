@@ -3,6 +3,7 @@
 //
 
 #include "Groups/RootGroup.h"
+#include "TaskSystem/Scheduler.h"
 
 void RootGroup::OnInit()  {
     for (auto& member : GetMembers()) {
@@ -20,6 +21,7 @@ void RootGroup::OnUpdate() {
     for (auto& member : GetMembers()) {
         if (member->IsEnabled) member->OnUpdate();
     }
+    while (!Scheduler::GetInstance().WorkersAreDone()){}
 }
 
 void RootGroup::OnStop()  {

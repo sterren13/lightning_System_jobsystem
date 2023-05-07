@@ -9,7 +9,8 @@
 
 template<typename ParentGroup>
 class ISystem : public BaseSystem, public IMember<ParentGroup> {
-private:
+public:
+    virtual ~ISystem() = default;
     virtual void OnInit() = 0;
     virtual void OnStart() = 0;
     virtual void OnUpdate() = 0;

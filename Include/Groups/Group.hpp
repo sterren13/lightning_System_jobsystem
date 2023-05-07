@@ -11,6 +11,7 @@
 #include "GroupTraits.hpp"
 #include "BaseMember.hpp"
 #include "RootGroup.h"
+#include "TaskSystem/Scheduler.h"
 
 template<class Traits, class ParentGroup, GroupParallelJobSystem ParallelJobSystem = Traits::GroupParallelJobSystem>
 class Group : public Traits, public BaseMember {
@@ -87,9 +88,8 @@ public:
     }
 
     void OnUpdate() final {
-        for (auto &member : GetMembers()) {
+        for (auto &member : GetMembers())
             if (member->IsEnabled) member->OnUpdate();
-        }
     }
 
     void OnStop() final {
@@ -156,6 +156,14 @@ public:
         ParentGroup::RemoveMember(this);
     }
 
+    void PrintHierarchy(size_t interval) final {
+        for (size_t i = 0; i < interval; i++) std::cout << "  ";
+        std::cout << "| Group: " << Traits::GroupName << ", ID: " << MemberId << ":" << std::endl;
+        for (auto &member : GetMembers()) {
+            if (member->IsEnabled) member->PrintHierarchy(interval + 1);
+        }
+    }
+
     void OnInit() final {
         for (auto &member : GetMembers()) {
             member->OnInit();
@@ -171,6 +179,9 @@ public:
     void OnUpdate() final {
         for (auto &member : GetMembers()) {
             if (member->IsEnabled) member->OnUpdate();
+        }
+        while (!Scheduler::GetInstance().WorkersAreDone()) {
+            std::this_thread::yield();
         }
     }
 

@@ -7,8 +7,8 @@
 
 class BaseSystem {
 public:
-    BaseSystem();
-    ~BaseSystem();
+    BaseSystem() = default;
+    ~BaseSystem() = default;
 };
 
 #endif //TESTSYSTEMS_BASESYSTEM_H

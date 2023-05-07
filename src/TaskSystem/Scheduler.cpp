@@ -82,14 +82,14 @@ std::shared_ptr<TaskHandel> Scheduler::StealTask() {
 void Scheduler::PrintStats() {
     std::lock_guard<std::mutex> lock(WorkerVectorMutex);
     for (auto worker : m_Workers)
-        std::cout << "Worker " << worker->GetWorkerIndex() << " has " << worker->GetTaskCount() << " task, "
+        std::cout << "  Worker " << worker->GetWorkerIndex() << " has " << worker->GetTaskCount() << " task, "
                   << "state: " << worker->IsRunning() << "\n";
 }
 
 bool Scheduler::WorkersAreDone() {
     std::lock_guard<std::mutex> lock(WorkerVectorMutex);
     for (auto worker : m_Workers)
-        if (worker->IsRunning())
+        if (worker->GetTaskCount() > 0 || worker->IsRunning())
             return false;
     return true;
 }
